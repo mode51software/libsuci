@@ -1,7 +1,7 @@
 #ifdef SUCIC_TEST_ENABLED
 
-#ifndef SUCIC_SUCIC_TEST_H
-#define SUCIC_SUCIC_TEST_H
+#ifndef SUCIC_TEST_H
+#define SUCIC_TEST_H
 
 #include <stdint.h>
 
@@ -85,10 +85,10 @@ static uint8_t ue_pubkey_rawbytes_test[33] = {
         0xD1
 };
 
-static unsigned char profileb_ciphertext_test[5] = {
+static unsigned char profileb_ciphertext_test[] = {
         0x46, 0xA3, 0x3F, 0xC2, 0x71
 };
 
-#endif // SUCIC_SUCIC_TEST_H
+#endif // SUCIC_TEST_H
 
 #endif // SUCIC_TEST_ENABLED

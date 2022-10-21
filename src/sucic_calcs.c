@@ -6,10 +6,13 @@
 #include <core_names.h>
 #include <kdf.h>
 
+#include "sucic_calcs.h"
 #include "sucic_utils.h"
 
 #ifdef SUCIC_TEST_ENABLED
 #include "sucic_test.h"
+#include "sucic_calcs.h"
+
 #endif // SUCIC_TEST_ENABLED
 
 // https://wiki.openssl.org/index.php/Elliptic_Curve_Diffie_Hellman
@@ -21,24 +24,27 @@ int sucic_kdfX963(unsigned char* sharedkey, size_t sharedkey_sz,
 int sucic_unpackDerivedKeys(unsigned char* data,
                             unsigned char* aes_key, unsigned char* aes_nonce, unsigned char* mac_key);
 int sucic_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-                  unsigned char *iv, unsigned char *plaintext, int* plaintext_len);
+                  unsigned char *iv, unsigned char *plaintext, size_t* plaintext_len);
 
 
-void sucic_deconceal(unsigned char* privkeyder_filename,
-                     uint8_t* ue_pubkey_rawbytes, size_t ue_pubkey_rawbytes_sz,
-                     uint8_t *profileb_ciphertext, size_t profileb_ciphertext_sz) {
+short sucic_deconceal(//uint8_t * privkeyder_filename,
+                    EVP_PKEY* hn_privkey,
+                    uint8_t* ue_pubkey_rawbytes, size_t ue_pubkey_rawbytes_sz,
+                    uint8_t* profileb_ciphertext, size_t profileb_ciphertext_sz,
+                    uint8_t* plaintext, size_t* plaintext_len) {
 
-    EVP_PKEY* hn_privkey = NULL;
+    //EVP_PKEY* hn_privkey = NULL;
     EVP_PKEY* ue_pubkey = NULL;
 
     // int res = sucic_loadPrivKeyBytes(&hn_privkey_bytes, sizeof(hn_privkey_bytes), &hn_privkey);
     int res = 0;
 
-    hn_privkey = sucic_loadPrivateKeyFile(privkeyder_filename, &hn_privkey);
+    //hn_privkey = sucic_loadPrivateKeyFile(privkeyder_filename, &hn_privkey);
 
 //    if(res > 0 || hn_privkey == NULL) {
     if(hn_privkey == NULL) {
         printf("Unable to create Home Net privkey res=%d\n", res);
+        return SUCIC_PRIVKEYNOTLOADED;
     } else {
 
         //HLOG("priv #1b   ", hn_privkey_bytes, 512);//sizeof(hn_privkey_bytes));
@@ -120,16 +126,14 @@ void sucic_deconceal(unsigned char* privkeyder_filename,
                     HLOG("derived aes_nonce #1   ", aes_nonce, sizeof(aes_nonce));
                     HLOG("derived mac #1   ", mac_key, sizeof(mac_key));
 
-                    unsigned char plaintext[32];
-                    int plaintext_len = 0;
-
                     res = sucic_decrypt(profileb_ciphertext, profileb_ciphertext_sz,
-                                        aes_key, aes_nonce, &plaintext, &plaintext_len);
+                                        aes_key, aes_nonce, plaintext, plaintext_len);
 
                     if(res != 0) {
                         ELOG("Error decrypting SUCI res=%d\n", res);
                     } else {
-                        HLOG("decrypted SUCI #1   ", plaintext, plaintext_len);
+                        HLOG("decrypted SUCI #1   ", plaintext, *plaintext_len);
+                        return SUCIC_OK;
                     }
                 }
             }
@@ -137,13 +141,13 @@ void sucic_deconceal(unsigned char* privkeyder_filename,
         }
         EVP_PKEY_free(hn_privkey);
     }
+    return res;
 }
 
 int sucic_genSharedKey(EVP_PKEY* pkey, EVP_PKEY* peerkey, unsigned char** sharedkey, size_t* secret_len) {
 
     EVP_PKEY_CTX *ctx = NULL;
     int ret = 0;
-    size_t buf_len = 0;
 
     /* Create the context for the shared secret derivation */
     if(NULL == (ctx = EVP_PKEY_CTX_new(pkey, NULL))) { ret = 1; }
@@ -160,7 +164,7 @@ int sucic_genSharedKey(EVP_PKEY* pkey, EVP_PKEY* peerkey, unsigned char** shared
     //if(!ret && 1 != EVP_PKEY_derive(ctx, NULL, &buf_len)) { ret = 4; }
     if(!ret && 1 != EVP_PKEY_derive(ctx, NULL, secret_len)) { ret = 4; }
 
-    printf("Keylen will be=%d\n", *secret_len); //buf_len); //
+    DLOG("Keylen will be=%d\n", *secret_len); //buf_len); //
 
     unsigned char* sharedkeyloc = NULL;
     /* Create the buffer */
@@ -237,7 +241,7 @@ int sucic_unpackDerivedKeys(unsigned char* data, unsigned char* aes_key, unsigne
 // https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption#Decrypting_the_Message
 
 int sucic_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-            unsigned char *iv, unsigned char *plaintext, int* plaintext_len)
+            unsigned char *iv, unsigned char *plaintext, size_t* plaintext_len)
 {
     EVP_CIPHER_CTX *ctx;
     int len;
