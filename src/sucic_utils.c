@@ -1,5 +1,6 @@
 
 #include "sucic_utils.h"
+#include "sucic_calcs.h"
 
 #include <openssl/evp.h>
 #include <pem.h>
@@ -79,7 +80,7 @@ int sucic_loadKeyBytes(short is_privkey, uint8_t* priv_bytes, int priv_bytes_len
     OPENSSL_free(key_buf);
 
     if(*privkey == NULL) {
-        return 1;
+        return SUCIC_PUBKEYNOTLOADED;
     }
     return 0;
 
@@ -148,6 +149,20 @@ void sucic_printHex(const char *label, const uint8_t *v, size_t len) {
     printf("\n");
 }
 
+void sucic_sprintfHex(uint8_t* in, uint8_t* out, size_t inlen, short should_swapbytes) {
+    uint8_t tmp[2];
+    for (int i = 0; i < inlen; ++i) {
+        if(should_swapbytes) {
+            sprintf(tmp, "%02x", in[i]);
+            memcpy(out + (i*2), &tmp[1], 1);
+            memcpy(out + (i*2) + 1, &tmp[0], 1);
+        } else {
+            sprintf(out + (i*2), "%02x", in[i]);
+        }
+    }
+    out[(inlen-1)*2] = '\0';
+}
+
 int sucic_getCurveName(EVP_PKEY* privkey, unsigned char* outbuf) {
 
     int len = 0;
@@ -167,4 +182,44 @@ void sucic_getEvpPrivKey(EVP_PKEY* privkey, BIGNUM* out_bignum) {
     } else {
         ILOG("Got priv key\n");
     }
+}
+
+void sucic_unpackSuciString(uint8_t* sucistr_in, SuciData * raw_sucibytesout, size_t ue_keysz) {
+    int sucistr_len = strlen(sucistr_in);
+    if(sucistr_len < 1000) {
+        int raw_sucibytesin_sz = (sucistr_len / 2) + 1;
+        uint8_t* raw_sucibytesin = (uint8_t*) malloc(raw_sucibytesin_sz * sizeof(char));
+        uint8_t tmp[3];
+        tmp[2] = '\0';
+        for(int i=0; i<sucistr_len; i+=2) {
+            tmp[0] = sucistr_in[i];
+            tmp[1] = sucistr_in[i + 1];
+            raw_sucibytesin[i / 2] = strtol(tmp, NULL, 16);
+        }
+        sucic_unpackRawSuciBytes(raw_sucibytesin, raw_sucibytesin_sz, raw_sucibytesout, ue_keysz);
+        free(raw_sucibytesin);
+    }
+}
+
+void sucic_unpackRawSuciBytes(uint8_t* raw_sucibytesin, size_t raw_sucibytesin_sz, SuciData * raw_sucibytesout, size_t ue_keysz) {
+
+    raw_sucibytesout->mac_key_sz = 8;
+    raw_sucibytesout->enc_msin_sz = raw_sucibytesin_sz - (raw_sucibytesout->mac_key_sz + ue_keysz);
+    raw_sucibytesout->ue_key_sz = ue_keysz;
+
+    raw_sucibytesout->ue_key = malloc(ue_keysz * sizeof(uint8_t));
+    raw_sucibytesout->mac_key = malloc(raw_sucibytesout->mac_key_sz * sizeof(uint8_t));
+    raw_sucibytesout->enc_msin = malloc(raw_sucibytesout->enc_msin_sz * sizeof(uint8_t));
+
+    memcpy(raw_sucibytesout->ue_key, raw_sucibytesin, ue_keysz);
+    memcpy(raw_sucibytesout->enc_msin, raw_sucibytesin + ue_keysz, sizeof(raw_sucibytesout->enc_msin));
+    memcpy(raw_sucibytesout->mac_key, raw_sucibytesin + ue_keysz +  raw_sucibytesout->enc_msin_sz,
+           raw_sucibytesout->mac_key_sz * sizeof(uint8_t));
+}
+
+void sucic_cleanupSuciData(SuciData* suciData) {
+    free(suciData->ue_key);
+    free(suciData->enc_msin);
+    free(suciData->mac_key);
+    free(suciData);
 }
