@@ -94,7 +94,7 @@ short sucic_deconceal(//uint8_t * privkeyder_filename,
                 HLOG("shared #1   ", sharedkey, sharedkey_len); //sizeof(suci_sharedkey_bytes));
             } else {
                 ELOG("Unable to gen shared key res=%d\n", res);
-                return;
+                return res;
             }
 
             uint8_t derived_keys[64];
@@ -131,9 +131,10 @@ short sucic_deconceal(//uint8_t * privkeyder_filename,
 
                     if(res != 0) {
                         ELOG("Error decrypting SUCI res=%d\n", res);
+                        res = SUCIC_DECRYPTFAILED;
                     } else {
                         HLOG("decrypted SUCI #1   ", plaintext, *plaintext_len);
-                        return SUCIC_OK;
+                        res = SUCIC_OK;
                     }
                 }
             }
@@ -181,6 +182,8 @@ int sucic_genSharedKey(EVP_PKEY* pkey, EVP_PKEY* peerkey, unsigned char** shared
     HLOG("shared #1a   ", sharedkeyloc, *secret_len); //sizeof(suci_sharedkey_bytes));
 
     *sharedkey = sharedkeyloc;
+
+    EVP_PKEY_CTX_free(ctx);
 
     return ret;
 }
@@ -241,8 +244,7 @@ int sucic_unpackDerivedKeys(unsigned char* data, unsigned char* aes_key, unsigne
 // https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption#Decrypting_the_Message
 
 int sucic_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-            unsigned char *iv, unsigned char *plaintext, size_t* plaintext_len)
-{
+            unsigned char *iv, unsigned char *plaintext, size_t* plaintext_len) {
     EVP_CIPHER_CTX *ctx;
     int len;
     int res = 0;

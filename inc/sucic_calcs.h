@@ -11,8 +11,19 @@
 
 enum sucic_res {
     SUCIC_OK,
-    SUCIC_PRIVKEYNOTLOADED
+    SUCIC_PRIVKEYNOTLOADED,
+    SUCIC_PUBKEYNOTLOADED,
+    SUCIC_DECRYPTFAILED
 };
+
+struct rawSuciData {
+    uint8_t*     ue_key;
+    uint         ue_key_sz;
+    uint8_t*     mac_key;
+    uint         mac_key_sz;
+    uint8_t*     enc_msin;
+    uint         enc_msin_sz;
+} typedef SuciData;
 
 short sucic_deconceal(EVP_PKEY* hn_privkey,
                      uint8_t* ue_pubkey_rawbytes, size_t ue_pubkey_rawbytes_sz,
