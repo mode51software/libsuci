@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(suci VERSION 1.0.3 DESCRIPTION "5G SUCI C library")
+project(suci VERSION 1.0.4 DESCRIPTION "5G SUCI C library")
 
 set(CMAKE_C_STANDARD 17)
 set(CMDLINE_TEST 0)
