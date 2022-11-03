@@ -199,8 +199,8 @@ void suci_unpackRawSuciBytes(uint8_t* raw_sucibytesin, size_t raw_sucibytesin_sz
 }
 
 void suci_cleanupSuciData(SuciData* suciData) {
-    free(suciData->ue_key);
-    free(suciData->enc_msin);
-    free(suciData->mac_key);
+    if(suciData->ue_key) { free(suciData->ue_key); }
+    if(suciData->enc_msin) { free(suciData->enc_msin); }
+    if(suciData->mac_key) { free(suciData->mac_key); }
     free(suciData);
 }

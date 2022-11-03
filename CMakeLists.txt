@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
-project(suci VERSION 1.0.4 DESCRIPTION "5G SUCI C library")
+project(suci VERSION 1.0.6 DESCRIPTION "5G SUCI C library")
 
 set(CMAKE_C_STANDARD 17)
-set(CMDLINE_TEST 0)
+set(CMDLINE_TEST 1)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 

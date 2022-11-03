@@ -31,6 +31,7 @@ int main() {
     //sucitest_open5GS(hn_privkey, raw_sucidata, &plaintext, &plaintext_len);
 
     suci_cleanupSuciData(raw_sucidata);
+    EVP_PKEY_free(hn_privkey);
 
     return 0;
 }
