@@ -10,7 +10,7 @@
 
 #define UE_KEYSZ 33
 
-void sucitest_profileBSampleData(EVP_PKEY* hn_privkey, SuciData* raw_sucidata, uint8_t* plaintext, size_t* plaintext_len);
+void sucitest_profileBSampleData(EVP_PKEY* hn_privkey, uint8_t* plaintext, size_t* plaintext_len);
 void sucitest_open5GS(EVP_PKEY* hn_privkey, SuciData* raw_sucidata, uint8_t* plaintext, size_t* plaintext_len);
 
 int main() {
@@ -20,22 +20,23 @@ int main() {
     uint8_t plaintext[32];
     size_t plaintext_len = 0;
     EVP_PKEY* hn_privkey;
-    SuciData* raw_sucidata;
 
     hn_privkey = suci_loadPrivateKeyFile(TEST_PRIV_HNKEY_FILE, &hn_privkey);
 
-    raw_sucidata = malloc(sizeof(SuciData));
+    sucitest_profileBSampleData(hn_privkey, &plaintext, &plaintext_len);
 
-    sucitest_profileBSampleData(hn_privkey, raw_sucidata, &plaintext, &plaintext_len);
     // alternatively test in the way that Open5GS will use
+    //SuciData* raw_sucidata;
+    //raw_sucidata = malloc(sizeof(SuciData));
     //sucitest_open5GS(hn_privkey, raw_sucidata, &plaintext, &plaintext_len);
+    //suci_cleanupSuciData(raw_sucidata);
 
-    suci_cleanupSuciData(raw_sucidata);
+    EVP_PKEY_free(hn_privkey);
 
     return 0;
 }
 
-void sucitest_profileBSampleData(EVP_PKEY* hn_privkey, SuciData* raw_sucidata, uint8_t* plaintext, size_t* plaintext_len) {
+void sucitest_profileBSampleData(EVP_PKEY* hn_privkey, uint8_t* plaintext, size_t* plaintext_len) {
 
     suci_deconceal(hn_privkey,
                    &ue_pubkey_rawbytes_test, sizeof(ue_pubkey_rawbytes_test),

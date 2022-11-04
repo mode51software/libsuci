@@ -38,7 +38,7 @@ short suci_deconceal(//uint8_t * privkeyder_filename,
     int res = 0;
 
     if(hn_privkey == NULL) {
-        printf("Unable to create Home Net privkey res=%d\n", res);
+        ELOG("Unable to create Home Net privkey res=%d\n", res);
         return SUCIC_PRIVKEYNOTLOADED;
     } else {
 
@@ -46,6 +46,7 @@ short suci_deconceal(//uint8_t * privkeyder_filename,
 
         if(res > 0 || ue_pubkey == NULL) {
             ELOG("Unable to create UE pubkey res=%d\n", res);
+            return SUCIC_UEPUBKEYFAILED;
         } else {
 
             unsigned char* sharedkey = NULL;
@@ -59,55 +60,58 @@ short suci_deconceal(//uint8_t * privkeyder_filename,
 
             if(!res && sharedkey != NULL) {
                 HLOG("shared #1   ", sharedkey, sharedkey_len); //sizeof(suci_sharedkey_bytes));
-            } else {
-                ELOG("Unable to gen shared key res=%d\n", res);
-                return res;
-            }
 
-            uint8_t derived_keys[64];
-            unsigned char* derived_keys_ptr = &derived_keys;
+                uint8_t derived_keys[64];
+                unsigned char* derived_keys_ptr = &derived_keys;
 
-            res = suci_kdfX963(sharedkey, sharedkey_len, ue_pubkey_rawbytes, ue_pubkey_rawbytes_sz,
-                                &derived_keys_ptr, sizeof(derived_keys));
+                res = suci_kdfX963(sharedkey, sharedkey_len, ue_pubkey_rawbytes, ue_pubkey_rawbytes_sz,
+                                   &derived_keys_ptr, sizeof(derived_keys));
 
-            HLOG("derived #1   ", derived_keys, sizeof(derived_keys));
+                HLOG("derived #1   ", derived_keys, sizeof(derived_keys));
 
-            if(sharedkey_len > 0) {
-                OPENSSL_free(sharedkey);
-            }
+                if(sharedkey_len > 0) {
+                    OPENSSL_free(sharedkey);
+                }
 
-            if(res <= 0) {
-                ELOG("Unable to derive key material\n");
-            } else {
-
-                uint8_t aes_key[16];
-                uint8_t aes_nonce[16];
-                uint8_t mac_key[32];
-
-                res = suci_unpackDerivedKeys(&derived_keys, &aes_key, &aes_nonce,&mac_key);
-
-                if(res != 0) {
-                    ELOG("Unpack error res=%d\n", res);
+                if(res <= 0) {
+                    ELOG("Unable to derive key material\n");
+                    res = SUCIC_DERIVEFAILED;
                 } else {
-                    HLOG("derived aes_key #1   ", aes_key, sizeof(aes_key));
-                    HLOG("derived aes_nonce #1   ", aes_nonce, sizeof(aes_nonce));
-                    HLOG("derived mac #1   ", mac_key, sizeof(mac_key));
 
-                    res = suci_decrypt(profileb_ciphertext, profileb_ciphertext_sz,
-                                        aes_key, aes_nonce, plaintext, plaintext_len);
+                    uint8_t aes_key[16];
+                    uint8_t aes_nonce[16];
+                    uint8_t mac_key[32];
+
+                    res = suci_unpackDerivedKeys(&derived_keys, &aes_key, &aes_nonce,&mac_key);
 
                     if(res != 0) {
-                        ELOG("Error decrypting SUCI res=%d\n", res);
-                        res = SUCIC_DECRYPTFAILED;
+                        ELOG("Unpack error res=%d\n", res);
+                        res = SUCIC_UNPACKFAILED;
                     } else {
-                        HLOG("decrypted SUCI #1   ", plaintext, *plaintext_len);
-                        res = SUCIC_OK;
+                        HLOG("derived aes_key #1   ", aes_key, sizeof(aes_key));
+                        HLOG("derived aes_nonce #1   ", aes_nonce, sizeof(aes_nonce));
+                        HLOG("derived mac #1   ", mac_key, sizeof(mac_key));
+
+                        res = suci_decrypt(profileb_ciphertext, profileb_ciphertext_sz,
+                                           aes_key, aes_nonce, plaintext, plaintext_len);
+
+                        if(res != 0) {
+                            ELOG("Error decrypting SUCI res=%d\n", res);
+                            res = SUCIC_DECRYPTFAILED;
+                        } else {
+                            HLOG("decrypted SUCI #1   ", plaintext, *plaintext_len);
+                            res = SUCIC_OK;
+                        }
                     }
                 }
+
+            } else {
+                ELOG("Unable to gen shared key res=%d\n", res);
+                res = SUCIC_GENSHAREDFAILED;
             }
+
             EVP_PKEY_free(ue_pubkey);
         }
-        EVP_PKEY_free(hn_privkey);
     }
     return res;
 }
