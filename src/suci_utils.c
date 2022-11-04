@@ -10,28 +10,12 @@ EVP_PKEY* suci_loadKeyFile(const char* filename, EVP_PKEY** pkey, short is_publi
 
 EVP_PKEY* suci_loadPrivateKeyFile(const char* filename, EVP_PKEY** pkey) {
 
-/*    FILE* fp = fopen(filename, "rb");
-
-    if(fp == NULL) {
-        return NULL;
-    } else {
-        EVP_PKEY* retkey = d2i_PrivateKey_fp(fp, pkey); //, NULL, NULL);
-        return retkey;
-    }*/
     return suci_loadKeyFile(filename, pkey, 0);
 
 }
 
 EVP_PKEY* suci_loadPublicKeyFile(const char* filename, EVP_PKEY** pkey) {
 
-/*    FILE* fp = fopen(filename, "rb");
-
-    if(fp == NULL) {
-        return NULL;
-    } else {
-        EVP_PKEY* retkey = d2i_PUBKEY_fp(fp, pkey); //, NULL, NULL);
-        return retkey;
-    }*/
     return suci_loadKeyFile(filename, pkey, 1);
 }
 
@@ -66,7 +50,6 @@ int suci_loadKeyBytes(short is_privkey, uint8_t* priv_bytes, int priv_bytes_len,
         key_buf[i] = priv_bytes[i];
     }
     const unsigned char* key_buf_ptr = key_buf;
-    //*privkey = EVP_EC_gen("P-256");
     *privkey = suci_setECParams(*privkey, NID_X9_62_prime256v1);
     EVP_PKEY* privkeyloc = is_privkey ?
                            d2i_PrivateKey(EVP_PKEY_EC, privkey, &key_buf, priv_bytes_len)
@@ -199,8 +182,8 @@ void suci_unpackRawSuciBytes(uint8_t* raw_sucibytesin, size_t raw_sucibytesin_sz
 }
 
 void suci_cleanupSuciData(SuciData* suciData) {
-    free(suciData->ue_key);
-    free(suciData->enc_msin);
-    free(suciData->mac_key);
+    if(suciData->ue_key) { free(suciData->ue_key); }
+    if(suciData->enc_msin) { free(suciData->enc_msin); }
+    if(suciData->mac_key) { free(suciData->mac_key); }
     free(suciData);
 }
