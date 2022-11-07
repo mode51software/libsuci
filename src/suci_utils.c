@@ -6,20 +6,20 @@
 #include <openssl/pem.h>
 #include <openssl/core_names.h>
 
-EVP_PKEY* suci_loadKeyFile(const char* filename, EVP_PKEY** pkey, short is_public);
+EVP_PKEY* suci_loadKeyFile(uint8_t* filename, EVP_PKEY** pkey, short is_public);
 
-EVP_PKEY* suci_loadPrivateKeyFile(const char* filename, EVP_PKEY** pkey) {
+EVP_PKEY* suci_loadPrivateKeyFile(uint8_t* filename, EVP_PKEY** pkey) {
 
     return suci_loadKeyFile(filename, pkey, 0);
 
 }
 
-EVP_PKEY* suci_loadPublicKeyFile(const char* filename, EVP_PKEY** pkey) {
+EVP_PKEY* suci_loadPublicKeyFile(uint8_t* filename, EVP_PKEY** pkey) {
 
     return suci_loadKeyFile(filename, pkey, 1);
 }
 
-EVP_PKEY* suci_loadKeyFile(const char* filename, EVP_PKEY** pkey, short is_public) {
+EVP_PKEY* suci_loadKeyFile(uint8_t* filename, EVP_PKEY** pkey, short is_public) {
 
     FILE* fp = fopen(filename, "rb");
 
