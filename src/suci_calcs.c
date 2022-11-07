@@ -3,8 +3,8 @@
 #include <openssl/obj_mac.h>
 #include <openssl/evp.h>
 #include <openssl/param_build.h>
-#include <core_names.h>
-#include <kdf.h>
+#include <openssl/core_names.h>
+#include <openssl/kdf.h>
 
 #include "suci_calcs.h"
 #include "suci_utils.h"
