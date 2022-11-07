@@ -64,5 +64,5 @@ libsuci = library('suci',
 
 libsuci_dep = declare_dependency(
     link_with : libsuci,
-    include_directories : include_directories(libsuci_includes)
+    include_directories : [libsuci_includes]
 )
