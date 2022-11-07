@@ -27,7 +27,7 @@ bison = find_program('bison')
 # Compiler flags
 if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     possible_cc_flags = [
-        '-Werror',
+        '-std=gnu11',
 
         '-Wno-unused-variable',
         '-Wno-unused-but-set-variable',
