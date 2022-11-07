@@ -21,8 +21,8 @@
 int suci_loadKeyBytes(short is_privkey, uint8_t* priv_bytes, int priv_bytes_len, EVP_PKEY** eck);
 int suci_loadPubKeyBytes(uint8_t* pub_bytes, int priv_bytes_len, EVP_PKEY** pubkey);
 int suci_loadPrivKeyBytes(uint8_t* priv_bytes, int priv_bytes_len, EVP_PKEY** privkey);
-EVP_PKEY* suci_loadPrivateKeyFile(const char* filename, EVP_PKEY** pkey);
-EVP_PKEY* suci_loadPublicKeyFile(const char* filename, EVP_PKEY** pkey);
+EVP_PKEY* suci_loadPrivateKeyFile(uint8_t* filename, EVP_PKEY** pkey);
+EVP_PKEY* suci_loadPublicKeyFile(uint8_t* filename, EVP_PKEY** pkey);
 int suci_parsePublicKey(unsigned char* curve_name, EVP_PKEY** pkey);
 EVP_PKEY* suci_setECParams(EVP_PKEY *eck, int nid);
 void suci_printHex(const char *label, const uint8_t *v, size_t len);
