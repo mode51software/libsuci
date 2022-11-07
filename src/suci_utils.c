@@ -4,7 +4,7 @@
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
-#include <core_names.h>
+#include <openssl/core_names.h>
 
 EVP_PKEY* suci_loadKeyFile(const char* filename, EVP_PKEY** pkey, short is_public);
 
