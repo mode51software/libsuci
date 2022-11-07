@@ -55,15 +55,18 @@ libsuci_includes = include_directories('''
     .
 '''.split())
 
+libcrypto_dep = dependency('libcrypto', version: '>=3.0')
+libssl_dep = dependency('libssl', version: '>=3.0')
+
 libsuci = library('suci',
     sources : libsuci_sources,
     version : libsuci_soversion,
     include_directories : [libsuci_includes],
-    dependencies : [crypto, ssl],
+    dependencies : [libcrypto_dep, libssl_dep],
     install : true)
 
 libsuci_dep = declare_dependency(
     link_with : libsuci,
     include_directories : [libsuci_includes],
-    dependencies : [crypto, ssl]
+    dependencies : [libcrypto_dep, libssl_dep]
 )
