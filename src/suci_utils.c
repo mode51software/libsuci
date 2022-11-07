@@ -3,7 +3,7 @@
 #include "suci_calcs.h"
 
 #include <openssl/evp.h>
-#include <pem.h>
+#include <openssl/pem.h>
 #include <core_names.h>
 
 EVP_PKEY* suci_loadKeyFile(const char* filename, EVP_PKEY** pkey, short is_public);
