@@ -44,11 +44,11 @@ add_project_arguments(
     language : 'c')
 
 libsuci_sources = files('''
-    suci_calcs.h
-    suci_utils.h
+    inc/suci_calcs.h
+    inc/suci_utils.h
 
-    suci_calcs.c
-    suci_utils.c
+    src/suci_calcs.c
+    src/suci_utils.c
 '''.split())
 
 libsuci_includes = include_directories('''
