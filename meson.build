@@ -29,7 +29,6 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     possible_cc_flags = [
         '-std=gnu11',
 
-        '-Wno-unused-variable',
         '-Wno-unused-but-set-variable',
         '-Wno-maybe-uninitialized',
         '-Wno-format-truncation',
@@ -60,9 +59,11 @@ libsuci = library('suci',
     sources : libsuci_sources,
     version : libsuci_soversion,
     include_directories : [libsuci_includes],
+    dependencies : [crypto, ssl],
     install : true)
 
 libsuci_dep = declare_dependency(
     link_with : libsuci,
-    include_directories : [libsuci_includes]
+    include_directories : [libsuci_includes],
+    dependencies : [crypto, ssl]
 )
