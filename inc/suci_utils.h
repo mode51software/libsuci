@@ -11,10 +11,10 @@
 #define ILOG printf
 #define HLOG suci_printHex
 #else
-#define DLOG //
-#define ELOG //
-#define ILOG //
-#define HLOG //
+#define DLOG // printf
+#define ELOG // printf
+#define ILOG // printf
+#define HLOG // printf
 #endif // SUCIC_TEST_ENABLED
 
 
