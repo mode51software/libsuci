@@ -10,7 +10,7 @@ project('libsuci', 'c',
 )
 
 libsuci_version = meson.project_version()
-libsuci_soversion = '1'
+libsuci_soversion = '1.1.0'
 
 prefix = get_option('prefix')
 bindir = join_paths(prefix, get_option('bindir'))
@@ -43,7 +43,26 @@ add_project_arguments(
     cc.get_supported_arguments(possible_cc_flags),
     language : 'c')
 
+libsuci_sources = files('''
+    suci_calcs.h
+    suci_utils.h
+
+    suci_calcs.c
+    suci_utils.c
+'''.split())
+
 libsuci_includes = include_directories('''
     inc
     .
 '''.split())
+
+libsuci = library('suci',
+    sources : libsuci_sources,
+    version : libsuci_soversion,
+    include_directories : [libsuci_includes],
+    install : true)
+
+libsuci_dep = declare_dependency(
+    link_with : libsuci,
+    include_directories : include_directories(libsuci_includes)
+)
