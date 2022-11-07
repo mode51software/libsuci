@@ -52,7 +52,7 @@ int suci_loadKeyBytes(short is_privkey, uint8_t* priv_bytes, int priv_bytes_len,
     const unsigned char* key_buf_ptr = key_buf;
     *privkey = suci_setECParams(*privkey, NID_X9_62_prime256v1);
     EVP_PKEY* privkeyloc = is_privkey ?
-                           d2i_PrivateKey(EVP_PKEY_EC, privkey, &key_buf, priv_bytes_len)
+                           d2i_PrivateKey(EVP_PKEY_EC, privkey, &key_buf_ptr, priv_bytes_len)
                                       : d2i_PublicKey(EVP_PKEY_EC, privkey, &key_buf_ptr, priv_bytes_len);
     *privkey = privkeyloc;
 
@@ -66,7 +66,7 @@ int suci_loadKeyBytes(short is_privkey, uint8_t* priv_bytes, int priv_bytes_len,
     return 0;
 }
 
-int suci_parsePublicKey(unsigned char* curve_name, unsigned char* pkey) {
+int suci_parsePublicKey(unsigned char* curve_name, EVP_PKEY** pkey) {
     OSSL_PARAM params[2];
 
     params[0] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME,
@@ -77,7 +77,7 @@ int suci_parsePublicKey(unsigned char* curve_name, unsigned char* pkey) {
     //EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(NID_X9_62_prime256v1, NULL);
 
     EVP_PKEY_fromdata_init(pctx);
-    return EVP_PKEY_fromdata(pctx, &pkey,
+    return EVP_PKEY_fromdata(pctx, pkey,
                              OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS,
                              params);
 }
@@ -114,7 +114,8 @@ void suci_printHex(const char *label, const uint8_t *v, size_t len) {
 }
 
 void suci_sprintfHex(uint8_t* in, uint8_t* out, size_t inlen, short should_swapbytes) {
-    uint8_t tmp[2];
+    uint8_t tmp[3];
+    tmp[2] = '\0';
     for (int i = 0; i < inlen; ++i) {
         if(should_swapbytes) {
             sprintf(tmp, "%02x", in[i]);
@@ -129,7 +130,7 @@ void suci_sprintfHex(uint8_t* in, uint8_t* out, size_t inlen, short should_swapb
 
 int suci_getCurveName(EVP_PKEY* privkey, unsigned char* outbuf) {
 
-    int len = 0;
+    size_t len = 0;
 
     if (!EVP_PKEY_get_utf8_string_param(privkey, OSSL_PKEY_PARAM_GROUP_NAME,
                                         outbuf, sizeof(outbuf), &len)) {
@@ -141,7 +142,7 @@ int suci_getCurveName(EVP_PKEY* privkey, unsigned char* outbuf) {
 }
 
 void suci_getEvpPrivKey(EVP_PKEY* privkey, BIGNUM* out_bignum) {
-    if (!EVP_PKEY_get_bn_param(privkey, OSSL_PKEY_PARAM_PRIV_KEY, out_bignum)) {
+    if (!EVP_PKEY_get_bn_param(privkey, OSSL_PKEY_PARAM_PRIV_KEY, &out_bignum)) {
         ELOG("Error getting privkey\n");
     } else {
         ILOG("Got priv key\n");

@@ -23,7 +23,7 @@ int main() {
 
     hn_privkey = suci_loadPrivateKeyFile(TEST_PRIV_HNKEY_FILE, &hn_privkey);
 
-    sucitest_profileBSampleData(hn_privkey, &plaintext, &plaintext_len);
+    sucitest_profileBSampleData(hn_privkey, (uint8_t *) &plaintext, &plaintext_len);
 
     // alternatively test in the way that Open5GS will use
     //SuciData* raw_sucidata;
@@ -39,8 +39,8 @@ int main() {
 void sucitest_profileBSampleData(EVP_PKEY* hn_privkey, uint8_t* plaintext, size_t* plaintext_len) {
 
     suci_deconceal(hn_privkey,
-                   &ue_pubkey_rawbytes_test, sizeof(ue_pubkey_rawbytes_test),
-                   &profileb_ciphertext_test, sizeof(profileb_ciphertext_test),
+                   (uint8_t *) &ue_pubkey_rawbytes_test, sizeof(ue_pubkey_rawbytes_test),
+                   (uint8_t *) &profileb_ciphertext_test, sizeof(profileb_ciphertext_test),
                    plaintext, plaintext_len);
 
     uint8_t* plaintext_str = (uint8_t*) malloc(((*plaintext_len) * 2) + 1);

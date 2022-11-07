@@ -6,13 +6,11 @@
 #include <openssl/core_names.h>
 #include <openssl/kdf.h>
 
-#include "suci_calcs.h"
 #include "suci_utils.h"
+#include "suci_calcs.h"
 
 #ifdef SUCIC_TEST_ENABLED
 #include "suci_test.h"
-#include "suci_calcs.h"
-
 #endif // SUCIC_TEST_ENABLED
 
 // https://wiki.openssl.org/index.php/Elliptic_Curve_Diffie_Hellman
@@ -21,8 +19,7 @@ int sucic_genSharedKey(EVP_PKEY* pkey, EVP_PKEY* peerkey, unsigned char** secret
 int suci_kdfX963(unsigned char* sharedkey, size_t sharedkey_sz,
                   unsigned char* sharedinfo, size_t sharedinfo_sz,
                   unsigned char** retout, int out_sz);
-int suci_unpackDerivedKeys(unsigned char* data,
-                            unsigned char* aes_key, unsigned char* aes_nonce, unsigned char* mac_key);
+int suci_unpackDerivedKeys(uint8_t* data, uint8_t* aes_key, uint8_t* aes_nonce, uint8_t* mac_key);
 int suci_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
                   unsigned char *iv, unsigned char *plaintext, size_t* plaintext_len);
 
@@ -53,16 +50,15 @@ short suci_deconceal(//uint8_t * privkeyder_filename,
 
             size_t sharedkey_len = 0;
 
-            unsigned char* suci_sharedkey_bytes_ptr = &sharedkey;
             res = sucic_genSharedKey(hn_privkey, ue_pubkey, &sharedkey, &sharedkey_len); //sizeof(suci_ciphertext_bytes));
 
-            ILOG("shared res=%d shared keylen=%d\n", res, sharedkey_len);
+            ILOG("shared res=%d shared keylen=%zu\n", res, sharedkey_len);
 
             if(!res && sharedkey != NULL) {
                 HLOG("shared #1   ", sharedkey, sharedkey_len); //sizeof(suci_sharedkey_bytes));
 
                 uint8_t derived_keys[64];
-                unsigned char* derived_keys_ptr = &derived_keys;
+                uint8_t* derived_keys_ptr = (uint8_t *) &derived_keys;
 
                 res = suci_kdfX963(sharedkey, sharedkey_len, ue_pubkey_rawbytes, ue_pubkey_rawbytes_sz,
                                    &derived_keys_ptr, sizeof(derived_keys));
@@ -82,7 +78,8 @@ short suci_deconceal(//uint8_t * privkeyder_filename,
                     uint8_t aes_nonce[16];
                     uint8_t mac_key[32];
 
-                    res = suci_unpackDerivedKeys(&derived_keys, &aes_key, &aes_nonce,&mac_key);
+                    res = suci_unpackDerivedKeys(derived_keys_ptr, (uint8_t*) &aes_key,
+                                                 (uint8_t*) &aes_nonce, (uint8_t*) &mac_key);
 
                     if(res != 0) {
                         ELOG("Unpack error res=%d\n", res);
@@ -135,7 +132,7 @@ int sucic_genSharedKey(EVP_PKEY* pkey, EVP_PKEY* peerkey, unsigned char** shared
     /* Determine buffer length for shared secret */
     if(!ret && 1 != EVP_PKEY_derive(ctx, NULL, secret_len)) { ret = 4; }
 
-    DLOG("Keylen will be=%d\n", *secret_len); //buf_len); //
+    DLOG("Keylen will be=%zu\n", *secret_len); //buf_len); //
 
     unsigned char* sharedkeyloc = NULL;
     /* Create the buffer */
@@ -189,8 +186,7 @@ int suci_kdfX963(unsigned char* sharedkey, size_t sharedkey_sz,
     return res;
 };
 
-int suci_unpackDerivedKeys(unsigned char* data, unsigned char* aes_key, unsigned char* aes_nonce,
-                            unsigned char* mac_key) {
+int suci_unpackDerivedKeys(uint8_t* data, uint8_t* aes_key, uint8_t* aes_nonce, uint8_t* mac_key) {
 
     for(int i=0; i<16; i++) {
         aes_key[i] = data[i];
