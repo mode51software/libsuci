@@ -4,7 +4,7 @@ project('libsuci', 'c',
     meson_version : '>= 0.43.0',
     default_options : [
         'warning_level=1',
-        'c_std=c17',
+        'c_std=gnu11',
         'prefix=/usr',
     ],
 )
