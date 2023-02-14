@@ -19,7 +19,7 @@ int main() {
 
     uint8_t plaintext[32];
     size_t plaintext_len = 0;
-    EVP_PKEY* hn_privkey;
+    EVP_PKEY* hn_privkey = EVP_PKEY_new();
 
     hn_privkey = suci_loadPrivateKeyFile(TEST_PRIV_HNKEY_FILE, &hn_privkey);
 
